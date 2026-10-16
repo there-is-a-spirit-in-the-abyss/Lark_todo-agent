@@ -1,0 +1,38 @@
+services:
+  team-preview:
+    image: huiyang-app
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://huiyang:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/huiyang
+      PLATFORM_ENABLED: "false"
+      TEAM_WEB_ENABLED: "true"
+      TEAM_PUBLIC_URL: "https://${TEAM_HOST:?Set TEAM_HOST in deploy/team.env}"
+      TEAM_STATIC_DIR: /root/huiyang/web/dist
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ../.env:/root/huiyang/.env:ro
+    networks:
+      - production
+  team-proxy:
+    image: huiyang-app
+    restart: unless-stopped
+    network_mode: host
+    read_only: true
+    entrypoint: /root/huiyang/.runtime/tools/caddy
+    command: ["run", "--config", "/root/huiyang/deploy/Caddyfile", "--adapter", "caddyfile"]
+    environment:
+      XDG_DATA_HOME: /root/huiyang/.runtime/caddy-data
+      XDG_CONFIG_HOME: /root/huiyang/.runtime/caddy-config
+      TEAM_HOST: "${TEAM_HOST:?Set TEAM_HOST in deploy/team.env}"
+      TEAM_UPSTREAM: "${TEAM_UPSTREAM:-127.0.0.1:8001}"
+    volumes:
+      - ../.runtime/tools/caddy:/root/huiyang/.runtime/tools/caddy:ro
+      - ./Caddyfile:/root/huiyang/deploy/Caddyfile:ro
+      - ../.runtime/caddy-data:/root/huiyang/.runtime/caddy-data
+      - ../.runtime/caddy-config:/root/huiyang/.runtime/caddy-config
+networks:
+  production:
+    external: true
+    name: huiyang_default

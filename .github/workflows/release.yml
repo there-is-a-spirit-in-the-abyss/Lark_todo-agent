@@ -1,0 +1,147 @@
+name: Build installers and release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: installer-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: python -m pip install '.[test]' -r installer/requirements-build.txt
+      - run: python -m pytest tests installer/tests -q --import-mode=importlib -o pythonpath=tests
+      - run: npm ci
+        working-directory: web
+      - run: npm run test:unit
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+
+  image:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      reference: ${{ steps.reference.outputs.image }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Derive image name from this repository
+        id: registry
+        shell: bash
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: echo "name=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        if: github.event_name == 'release'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build both architectures; publish only for a Release
+        id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name == 'release' }}
+          tags: ${{ steps.registry.outputs.name }}:sha-${{ github.sha }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Require public anonymous image access
+        if: github.event_name == 'release'
+        id: reference
+        shell: bash
+        env:
+          IMAGE_NAME: ${{ steps.registry.outputs.name }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          docker logout ghcr.io
+          reference="${IMAGE_NAME}@${IMAGE_DIGEST}"
+          if ! docker buildx imagetools inspect "$reference"; then
+            echo '::error::The GHCR package must be public. Set Package settings > Change visibility > Public, then rerun this workflow.'
+            exit 1
+          fi
+          echo "image=$reference" >> "$GITHUB_OUTPUT"
+
+  windows:
+    needs: [test, image]
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - run: python -m pip install -r installer/requirements-build.txt
+      - run: python -m pytest installer/tests -q
+      - name: Build standalone installer
+        shell: pwsh
+        env:
+          IMAGE_REFERENCE: ${{ needs.image.outputs.reference }}
+          RELEASE_VERSION: ${{ github.event.release.tag_name || github.sha }}
+        run: |
+          python installer/build.py --version "$env:RELEASE_VERSION" --image "$env:IMAGE_REFERENCE"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify frozen bundle and graphical startup without SSH
+        shell: pwsh
+        run: |
+          $executable = (Get-Item installer/dist/*-setup.exe).FullName
+          $outputPath = Join-Path $env:RUNNER_TEMP 'installer-self-test.json'
+          $process = Start-Process -FilePath $executable -ArgumentList '--self-test','--self-test-output',('"' + $outputPath + '"') -Wait -PassThru -WindowStyle Hidden
+          if ($process.ExitCode -ne 0) { throw 'Frozen installer self-test failed' }
+          $result = Get-Content -LiteralPath $outputPath -Raw | ConvertFrom-Json
+          $profile = Get-Content installer/project.json -Raw | ConvertFrom-Json
+          if ($result.project -ne $profile.project -or !$result.bundled -or !$result.gui_available -or $result.credentials_embedded) { throw 'Unexpected installer self-test result' }
+          $guiOutput = Join-Path $env:RUNNER_TEMP 'installer-gui-smoke.json'
+          $process = Start-Process -FilePath $executable -ArgumentList '--smoke-ui','--self-test-output',('"' + $guiOutput + '"') -Wait -PassThru -WindowStyle Hidden
+          if ($process.ExitCode -ne 0) { throw 'Frozen GUI smoke test failed' }
+          $gui = Get-Content -LiteralPath $guiOutput -Raw | ConvertFrom-Json
+          if (!$gui.gui_ready) { throw 'Installer GUI did not become ready' }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-x64-installer
+          path: |
+            installer/dist/*-setup.exe
+            installer/dist/*-setup.exe.sha256
+          if-no-files-found: error
+      - name: Attach installer and checksum to the published Release
+        if: github.event_name == 'release'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $files = @(Get-ChildItem installer/dist/*-setup.exe,installer/dist/*-setup.exe.sha256 | ForEach-Object FullName)
+          gh release upload "$env:RELEASE_TAG" @files --clobber
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -1,0 +1,6 @@
+services:
+  app:
+    environment:
+      TEAM_WEB_ENABLED: "true"
+      TEAM_PUBLIC_URL: "https://${TEAM_HOST:?Set TEAM_HOST in deploy/team.env}"
+      TEAM_STATIC_DIR: /root/huiyang/web/dist

@@ -40,7 +40,8 @@ async def web(tmp_path):
     sessions = async_sessionmaker(engine, expire_on_commit=False)
     api = Feishu()
     settings = Settings(_env_file=None, team_web_enabled=True, team_public_url="https://team.test",
-                        feishu_app_id="app", feishu_app_secret="secret")
+                        feishu_app_id="app", feishu_app_secret="secret",
+                        team_static_dir=str(tmp_path / "static"))
     app = create_app(settings=settings, team_dependencies=(sessions, api))
     async with sessions() as s:
         s.add(TeamSession(token_hash=hashlib.sha256(b"session").hexdigest(), user_id="a",

@@ -1,22 +1,32 @@
-# Huiyang · 汇漾
+# Huiyang
 
-## Windows 安装包下载
+English | [简体中文](README.zh-CN.md)
 
-**[下载 huiyang-setup.exe](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases/latest/download/huiyang-setup.exe)** · [全部版本与校验文件](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases)
+## Windows installer
 
-下载后双击 `.exe`，填写 SSH 登录信息、选择服务器目录，再点击部署。电脑无需另外安装 Python、Node.js 或 SSH。默认目录 `/Lark_todo-agent`；需要自己的飞书应用与模型配置，可导入已有 `.env`。
+**[Download huiyang-setup.exe](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases/latest/download/huiyang-setup.exe)** · [All releases and checksums](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases)
 
-[安装器使用说明](installer/README.md)。GitHub 自动构建通过后，发布页提供直接拉取预构建镜像的安装器；本地构建的安装器包含干净源码，服务器 Docker 会自动完成构建。
+Download and double-click the `.exe`, enter your SSH connection details, choose a
+server directory, and deploy. Your computer does not need a separate Python,
+Node.js, or SSH installation. The default server directory is `/Lark_todo-agent`.
+Provide your own Feishu app and model settings, or import an existing `.env` file.
+Downloads require an authorized GitHub account while this repository is private.
+
+See the [installer guide (Simplified Chinese)](installer/README.md). After the
+GitHub release workflow succeeds, the installer pulls a prebuilt app image.
+Local installer builds include clean source that Docker builds on the server.
 
 Huiyang is a Feishu Todo secretary bot with a shared project-tree webpage.
 It turns explicit chat instructions into validated actions, stores tasks and
 conversation references in PostgreSQL, and delivers replies and reminders through
 Feishu. Simplified Chinese is the default; English is selectable.
 
-汇漾是飞书 Todo 秘书：私聊维护个人任务，群内通过网页协作项目树。任务操作经过结构化
-模型输出校验、业务权限检查和持久化事务；普通群聊不会自动变成任务。
+Private chats manage personal tasks; groups collaborate through the shared
+project-tree webpage. Task operations pass structured model-output validation,
+permission checks, and durable transactions. Ordinary group messages do not
+automatically create tasks.
 
-## Languages / 语言
+## Languages
 
 - Set `APP_LANGUAGE=zh-CN` (default) or `APP_LANGUAGE=en-US` in `.env`, then recreate
   the app container so it reloads configuration.
@@ -27,9 +37,9 @@ Feishu. Simplified Chinese is the default; English is selectable.
   the same command to change the language shared by that group. Without the bot
   mention it is not a language command.
 - In team-web mode, group messages remain entry-link-only. Mention the bot with
-  `团队任务`, `团队todo`, `team tasks` or `team todo`. Entry-link replies use
+  `team tasks` or `team todo`. Entry-link replies use
   `APP_LANGUAGE`; private language commands do not change group routing.
-- The webpage selector **Language / 语言** switches between 简体中文 and English.
+- The webpage language selector switches between Simplified Chinese and English.
   Chinese is the browser default. Selection persists in that browser's local
   storage, including on the login/error screen. It does not change chat preferences.
 - Names, task/project titles, descriptions, IDs, stored status enum values and
@@ -92,8 +102,8 @@ redesigning inbox and scheduler coordination.
 In legacy mode, the first target-group event binds the API-reported group owner
 once as administrator. Private messages do not initialize this binding; do not
 add the bot to unrelated groups before the intended group initializes it.
-Ordinary members manage their assigned tasks. Canonical personal statuses remain
-待办、进行中、阻塞、已完成、已取消; overdue is derived.
+Ordinary members manage their assigned tasks. Personal task states cover
+to do, in progress, blocked, completed, and canceled; overdue is derived.
 
 Team-web mode has independent group-scoped boards, three task states, immutable
 authors, subtree moves/deletion, shared staging, cycle rejection, derived project

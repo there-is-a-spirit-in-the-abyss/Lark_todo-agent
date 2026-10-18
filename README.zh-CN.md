@@ -2,6 +2,8 @@
 
 [English](README.md) | 简体中文
 
+**[▶ B 站视频：功能介绍与安装部署](https://www.bilibili.com/video/BV16nnV6ZEXo/)**
+
 ## 功能
 
 **个人任务告诉机器人，团队进度用任务树展开。**
@@ -19,7 +21,7 @@
 
 把任务和提醒时间告诉飞书机器人，随后可继续查询自己的待办。下面的对话展示了创建“吃药”待办、查询任务，以及机器人实际发出提醒的案例。
 
-[![飞书个人 Todo：通过聊天创建、查询待办并收到提醒](docs/images/lark-personal-todo.png)](docs/images/lark-personal-todo.png)
+<a href="docs/images/lark-personal-todo.png"><img src="docs/images/lark-personal-todo.png" alt="飞书个人 Todo：通过聊天创建、查询待办并收到提醒" width="420"></a>
 
 ### 项目 Todo：重点看清团队进度
 
@@ -27,7 +29,7 @@
 
 下图为项目任务树界面示例，展示六个任务的层级关系及 1/6 已结束的进度。
 
-[![项目 Todo 任务树示例：六个任务的层级关系和 1/6 已结束的项目进度](docs/images/lark-project-progress.png)](docs/images/lark-project-progress.png)
+<a href="docs/images/lark-project-progress.png"><img src="docs/images/lark-project-progress.png" alt="项目 Todo 任务树示例：六个任务的层级关系和 1/6 已结束的项目进度" width="720"></a>
 
 ## 下载
 
@@ -39,6 +41,8 @@
 仓库目前为私有，下载安装包需要登录有访问权限的 GitHub 账号。
 
 ## 安装与部署
+
+**[▶ B 站安装部署视频教程](https://www.bilibili.com/video/BV16nnV6ZEXo/)**
 
 ### 准备什么
 

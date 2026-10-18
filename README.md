@@ -2,6 +2,8 @@
 
 English | [简体中文](README.zh-CN.md)
 
+**[▶ Watch the feature and deployment video on Bilibili (Chinese)](https://www.bilibili.com/video/BV16nnV6ZEXo/)**
+
 ## Features
 
 **Tell the bot your personal tasks. Build a shared task tree for team progress.**
@@ -19,7 +21,7 @@ Ordinary group messages do not automatically create tasks.
 
 Tell the Feishu bot what to do and when to remind you, then ask for your open tasks later. This supplied conversation shows task creation, a task-list query and a delivered reminder.
 
-[![Personal Feishu Todo conversation showing task creation, lookup and a reminder](docs/images/lark-personal-todo.png)](docs/images/lark-personal-todo.png)
+<a href="docs/images/lark-personal-todo.png"><img src="docs/images/lark-personal-todo.png" alt="Personal Feishu Todo conversation showing task creation, lookup and a reminder" width="420"></a>
 
 ### Project Todo: make team progress visible
 
@@ -27,7 +29,7 @@ A connected tree puts projects, tasks, subtasks, status and owners in one view. 
 
 This project-tree example shows six tasks and progress of 1/6 ended tasks.
 
-[![Project Todo tree example with six tasks and project progress of 1/6 ended tasks](docs/images/lark-project-progress.png)](docs/images/lark-project-progress.png)
+<a href="docs/images/lark-project-progress.png"><img src="docs/images/lark-project-progress.png" alt="Project Todo tree example with six tasks and project progress of 1/6 ended tasks" width="720"></a>
 
 ## Download
 
@@ -39,6 +41,8 @@ Double-click the download to open the deployment wizard. Your computer needs no 
 The repository is currently private; downloading requires an authorized GitHub account.
 
 ## Installation and deployment
+
+**[▶ Watch the installation and deployment tutorial on Bilibili (Chinese)](https://www.bilibili.com/video/BV16nnV6ZEXo/)**
 
 ### What you need
 

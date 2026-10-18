@@ -1,32 +1,54 @@
-# Huiyang
+# Huiyang · Feishu Task Agent
 
 English | [简体中文](README.zh-CN.md)
 
-## Windows installer
+## Features
 
-**[Download huiyang-setup.exe](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases/latest/download/huiyang-setup.exe)** · [All releases and checksums](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases)
+**Tell the bot your personal tasks. Build a shared task tree for team progress.**
 
-Download and double-click the `.exe`, enter your SSH connection details, choose a
-server directory, and deploy. Your computer does not need a separate Python,
-Node.js, or SSH installation. The default server directory is `/Lark_todo-agent`.
-Provide your own Feishu app and model settings, or import an existing `.env` file.
-Downloads require an authorized GitHub account while this repository is private.
+- **Capture personal tasks in chat:** create, find and update todos through private Feishu conversations, with reminders.
+- **Build team projects quickly:** members of the same organization open a shared webpage from their Feishu group and break projects into tasks and subtasks.
+- **See progress clearly:** visualize task relationships and status in a tree, with project progress derived from tasks.
+- **Organize work flexibly:** use multiple projects, shared staging and whole-branch moves to turn loose tasks into a structured plan.
+- **Collaborate by group:** each group has its own board, with real Feishu membership checks and task permissions.
 
-See the [installer guide (Simplified Chinese)](installer/README.md). After the
-GitHub release workflow succeeds, the installer pulls a prebuilt app image.
-Local installer builds include clean source that Docker builds on the server.
+For example, manage a personal todo in private chat, then mention the bot with `team tasks` in a project group to build a tree such as “Product launch → Design / Development / Testing”.
+Ordinary group messages do not automatically create tasks.
 
-Huiyang is a Feishu Todo secretary bot with a shared project-tree webpage.
-It turns explicit chat instructions into validated actions, stores tasks and
-conversation references in PostgreSQL, and delivers replies and reminders through
-Feishu. Simplified Chinese is the default; English is selectable.
+## Download
 
-Private chats manage personal tasks; groups collaborate through the shared
-project-tree webpage. Task operations pass structured model-output validation,
-permission checks, and durable transactions. Ordinary group messages do not
-automatically create tasks.
+**[Download the Feishu Agent installer · huiyang-setup.exe](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases/latest/download/huiyang-setup.exe)**
 
-## Languages
+[All releases and checksums](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent/releases) · [GitHub repository](https://github.com/there-is-a-spirit-in-the-abyss/Lark_todo-agent)
+
+Double-click the download to open the deployment wizard. Your computer needs no separate Python, Node.js or SSH installation.
+The repository is currently private; downloading requires an authorized GitHub account.
+
+## Installation and deployment
+
+### What you need
+
+- A Linux server reachable over SSH, with its address, port, username and password or private key.
+- A Feishu group for the same organization or team, and permission to create and configure an internal app.
+- The app's App ID / App Secret, plus a model endpoint, API key and model name.
+- A reachable HTTPS address for the team webpage, with the required cloud firewall ports open.
+
+### Steps
+
+1. Manually create an internal Feishu app, enable its bot, configure permissions and long-connection message events, publish it with the appropriate availability, and add the bot to the target group.
+2. Open `huiyang-setup.exe`, enter SSH connection details, choose a server directory, and supply Feishu, model and webpage settings. You can import an existing `.env`.
+3. Deploy. The installer checks the server, installs missing supported Docker/Compose components, and deploys the application and database.
+4. Manually add the webpage's login callback URL ending in `/api/team/callback` to the Feishu app's security redirect settings.
+5. Verify private todos, reminder delivery and the group's `team tasks` entry, then confirm that group members can sign in and collaborate.
+
+**Bot creation, permission approval, event subscription, app publishing and callback configuration remain manual.** The wizard deploys the server application; it cannot obtain app credentials from a personal Feishu login.
+
+[Installer guide](installer/README.md) · [Feishu and model setup](docs/MANUAL_SETUP.md) · [Team webpage deployment](docs/TEAM_WEB_SETUP.md)
+
+<details>
+<summary>Languages, source deployment, task rules and verification</summary>
+
+### Languages
 
 - Set `APP_LANGUAGE=zh-CN` (default) or `APP_LANGUAGE=en-US` in `.env`, then recreate
   the app container so it reloads configuration.
@@ -47,7 +69,7 @@ automatically create tasks.
   clarification fields receive explicit language instructions; external model
   compliance still needs live verification.
 
-## Install and deploy
+### Install and deploy
 
 Windows users can use the [Chinese graphical installer](installer/README.md):
 double-click `huiyang-setup.exe`, enter SSH connection information, browse or
@@ -91,7 +113,7 @@ public HTTPS, Feishu OAuth callback, `TEAM_PUBLIC_URL`, and the explicit
 `demo/` is retained as the original reference and test fixture; it is separate
 from the connected application in `web/` and has no live Feishu integration.
 
-## Rules and boundaries
+### Rules and boundaries
 
 SDK events enter a durable inbox before acknowledgment. Validated model actions
 run in a business transaction with pending replies; transport retries reuse the
@@ -116,7 +138,7 @@ See [team rules](docs/team-web-integration.md).
 `LLM_PROVIDER=deepseek` uses Responses with adapter-owned wire normalization.
 No model SDK or translation call is introduced into the business layer.
 
-## Local verification
+### Local verification
 
 ```powershell
 $env:PYTHONPATH = "src"
@@ -135,3 +157,5 @@ read their environment flags before running them. Browser tests intercept the
 external API and use retained fixtures; they do not verify live OAuth or Feishu.
 No production deployment or live service verification is claimed for this copy.
 The pinned Feishu SDK may emit existing dependency deprecation warnings.
+
+</details>
